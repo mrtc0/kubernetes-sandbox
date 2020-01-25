@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: wazuh-nginx
+  namespace: wazuh
+  labels:
+    app: wazuh-nginx
+    # dns: route53
+spec:
+  type: LoadBalancer
+  selector:
+    app: wazuh-nginx
+  ports:
+    - name: web-https
+      port: 443
+      targetPort: 443

@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: loop
+spec:
+  containers:
+    - name: loop
+      image: alpine:latest
+      command: ["sh", "-c", "--"]
+      args: [ "while true; do sleep 30; echo '{\"test\": \"value\"}' > /dev/stdout; done;" ]

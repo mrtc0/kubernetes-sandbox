@@ -1,0 +1,70 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: wazuh-manager-worker-0
+  namespace: wazuh
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: wazuh-manager
+      node-type: worker
+      sts-id: '0'
+  serviceName: wazuh-cluster
+  podManagementPolicy: Parallel
+  template:
+    metadata:
+      labels:
+        app: wazuh-manager
+        node-type: worker
+        sts-id: '0'
+      name: wazuh-manager-worker-0
+    spec:
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              podAffinityTerm:
+                labelSelector:
+                  matchExpressions:
+                    - key: sts-id
+                      operator: In
+                      values:
+                        - '1'
+                topologyKey: kubernetes.io/hostname
+      volumes:
+        - name: config
+          configMap:
+            name: wazuh-manager-worker-0-conf
+      containers:
+        - name: wazuh-manager
+          image: 'wazuh/wazuh:3.11.1_7.5.1'
+          resources:
+            requests:
+              cpu: 2
+              memory: 1024Mi
+            limits:
+              cpu: 2
+              memory: 2048Mi
+          volumeMounts:
+            - name: config
+              mountPath: /wazuh-config-mount/etc/ossec.conf
+              subPath: ossec.conf
+              readOnly: true
+            - name: wazuh-manager-worker
+              mountPath: /var/ossec/data
+          ports:
+            - containerPort: 1514
+              name: agents-events
+            - containerPort: 1516
+              name: cluster
+  volumeClaimTemplates:
+    - metadata:
+        name: wazuh-manager-worker
+        namespace: wazuh
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        resources:
+          requests:
+            storage: 10Gi
