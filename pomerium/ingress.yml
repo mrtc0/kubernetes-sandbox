@@ -1,0 +1,30 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: pomerium-ingress
+  annotations:
+    kubernetes.io/ingress.allow-http: "false"
+    kubernetes.io/ingress.global-static-ip-name: your-global-static-ip-name
+
+spec:
+  tls:
+    - secretName: pomerium-tls
+      hosts:
+        - "*.your-domain.com"
+        - "authenticate.your-domain.com"
+
+  rules:
+    - host: "*.your-domain.com"
+      http:
+        paths:
+          - paths:
+            backend:
+              serviceName: pomerium-proxy-service
+              servicePort: https
+    - host: "authenticate.your-domain.com"
+      http:
+        paths:
+          - paths:
+            backend:
+              serviceName: pomerium-authenticate-service
+              servicePort: https
